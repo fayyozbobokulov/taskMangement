@@ -16,14 +16,14 @@ export class OrganizationService {
   }
 
   async createOrganization(data: any) {
-    return this.organizationRepository.createOrganization(data);
+    return this.organizationRepository.create(data);
   }
 
   async updateOrganization(id: number, data: any) {
-    return this.organizationRepository.updateOrganization(id, data);
+    return this.organizationRepository.update(id, data);
   }
 
   async deleteOrganization(id: number) {
-    return this.organizationRepository.deleteOrganization(id);
+    return this.organizationRepository.delete(id);
   }
 }
