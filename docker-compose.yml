@@ -1,15 +1,23 @@
 services:
   postgres:
-    image: postgres:13-alpine  # Use an alpine or ARM-compatible image
+    image: postgres:13-alpine
     container_name: postgres_db
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin_password
       POSTGRES_DB: project_management_db
+      PGUSER: admin
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d project_management_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - app-network
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
   app:
     build:
@@ -22,15 +30,20 @@ services:
       DB_USER: admin
       DB_PASSWORD: admin_password
       DB_NAME: project_management_db
+      # Add this to ensure proper initialization timing
+      DATABASE_URL: postgresql://admin:admin_password@postgres:5432/project_management_db
     ports:
       - "3000:3000"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - app-network
     volumes:
       - app_data:/usr/src/app
+
 volumes:
+  postgres_data:  # Add this volume for database persistence
   app_data:
 
 networks:
