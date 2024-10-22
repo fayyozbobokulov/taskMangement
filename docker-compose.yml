@@ -1,0 +1,38 @@
+services:
+  postgres:
+    image: postgres:13-alpine  # Use an alpine or ARM-compatible image
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin_password
+      POSTGRES_DB: project_management_db
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nestjs_app
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: admin
+      DB_PASSWORD: admin_password
+      DB_NAME: project_management_db
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    networks:
+      - app-network
+    volumes:
+      - app_data:/usr/src/app
+volumes:
+  app_data:
+
+networks:
+  app-network:
+    driver: bridge
