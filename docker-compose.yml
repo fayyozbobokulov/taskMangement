@@ -28,8 +28,10 @@ services:
       - postgres
     networks:
       - app-network
-    # volumes:
-    #   - ./:/usr/src/app
+    volumes:
+      - app_data:/usr/src/app
+volumes:
+  app_data:
 
 networks:
   app-network:
