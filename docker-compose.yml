@@ -28,5 +28,9 @@ services:
       - postgres
     networks:
       - app-network
-    volumes:
-      - ./:/usr/src/app
+    # volumes:
+    #   - ./:/usr/src/app
+
+networks:
+  app-network:
+    driver: bridge
