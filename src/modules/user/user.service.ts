@@ -3,6 +3,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './interface/user.interface';
 import { UserRepository } from './user.respository';
+import { UserRoles } from './interface/user-role.enum';
 
 @Injectable()
 export class UserService {
@@ -40,7 +41,7 @@ export class UserService {
     await this.userRepository.delete(id);
   }
 
-  async getUsersByRole(role: string): Promise<User[]> {
+  async getUsersByRole(role: UserRoles): Promise<User[]> {
     return this.userRepository.findByRole(role);
   }
 }
