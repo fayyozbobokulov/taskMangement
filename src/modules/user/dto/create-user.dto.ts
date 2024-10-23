@@ -1,11 +1,12 @@
 import { IsString, IsEnum, IsOptional, IsNumber } from 'class-validator';
+import { UserRoles } from '../interface/user-role.enum';
 
 export class CreateUserDto {
   @IsString()
   name: string;
 
-  @IsEnum(['admin', 'user'])
-  role: 'admin' | 'user';
+  @IsEnum(UserRoles)
+  role: UserRoles;
 
   @IsOptional()
   @IsNumber()
