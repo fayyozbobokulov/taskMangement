@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { OrganizationRepository } from './organization.repository';
+import { CreateOrganizationDto } from './dto/create-organization.dto';
+import { UpdateOrganizationDto } from './dto/update-organization.dto';
 
 @Injectable()
 export class OrganizationService {
@@ -15,11 +17,11 @@ export class OrganizationService {
     return this.organizationRepository.findById(id);
   }
 
-  async createOrganization(data: any) {
+  async createOrganization(data: CreateOrganizationDto) {
     return this.organizationRepository.create(data);
   }
 
-  async updateOrganization(id: number, data: any) {
+  async updateOrganization(id: number, data: UpdateOrganizationDto) {
     return this.organizationRepository.update(id, data);
   }
 
