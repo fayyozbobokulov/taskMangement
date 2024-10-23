@@ -10,13 +10,14 @@ import {
 import { OrganizationService } from './organization.service';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
+import { Organization } from './interface/organization.interface';
 
 @Controller('organizations')
 export class OrganizationController {
   constructor(private readonly organizationService: OrganizationService) {}
 
   @Get()
-  async getAllOrganizations() {
+  async getAllOrganizations(): Promise<Organization[]> {
     return this.organizationService.getAllOrganizations();
   }
 
