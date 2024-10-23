@@ -5,7 +5,9 @@ export class CreateUserDto {
   @IsString()
   name: string;
 
-  @IsEnum(UserRoles)
+  @IsEnum(UserRoles, {
+    message: `Role must be one of: ${Object.values(UserRoles).join(', ')}`,
+  })
   role: UserRoles;
 
   @IsOptional()
