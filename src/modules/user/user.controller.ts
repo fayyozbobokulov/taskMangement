@@ -53,10 +53,4 @@ export class UserController {
   async getUsersByRole(@Param('role') role: UserRoles): Promise<User[]> {
     return this.userService.getUsersByRole(role);
   }
-
-  @Get('admins')
-  @UseGuards(AdminGuard)
-  async getAdmins(): Promise<User[]> {
-    return this.userService.getUsersByRole(UserRoles.Admin);
-  }
 }
