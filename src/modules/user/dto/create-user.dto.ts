@@ -12,5 +12,5 @@ export class CreateUserDto {
 
   @IsOptional()
   @IsNumber()
-  created_by?: number;
+  requestedBy?: number;
 }
