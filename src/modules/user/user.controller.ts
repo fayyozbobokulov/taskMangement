@@ -8,13 +8,13 @@ import {
   Param,
   ParseIntPipe,
   UseGuards,
-  Request,
 } from '@nestjs/common';
 import { AdminGuard } from 'src/guards/admin.guards';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './interface/user.interface';
 import { UserService } from './user.service';
+import { UserRoles } from './interface/user-role.enum';
 
 @Controller('users')
 export class UserController {
@@ -40,26 +40,23 @@ export class UserController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<User> {
-    return this.userService.updateUser(req.user.id, id, updateUserDto);
+    return this.userService.updateUser(id, updateUserDto);
   }
 
   @Delete(':id')
-  async deleteUser(
-    @Request() req,
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<void> {
-    await this.userService.deleteUser(req.user.id, id);
+  async deleteUser(@Param('id', ParseIntPipe) id: number): Promise<void> {
+    await this.userService.deleteUser(id);
   }
 
   @Get('role/:role')
   @UseGuards(AdminGuard)
-  async getUsersByRole(@Param('role') role: UserRole): Promise<User[]> {
+  async getUsersByRole(@Param('role') role: UserRoles): Promise<User[]> {
     return this.userService.getUsersByRole(role);
   }
 
   @Get('admins')
   @UseGuards(AdminGuard)
   async getAdmins(): Promise<User[]> {
-    return this.userService.getUsersByRole(UserRole.ADMIN);
+    return this.userService.getUsersByRole(UserRoles.Admin);
   }
 }
