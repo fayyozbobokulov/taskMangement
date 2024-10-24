@@ -1,9 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ProjectService } from '../project/project.service';
 import { UserService } from '../user/user.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { Task } from './interface/task.interface';
+import { Task, TaskUpdatePermissions } from './interface/task.interface';
 import { TaskRepository } from './task.repository';
 import { TaskStatuses } from './interface/task-statuses.enum';
 import { UserRoles } from '../user/interface/user-role.enum';
@@ -54,7 +58,7 @@ export class TaskService {
     updateTaskDto: UpdateTaskDto,
   ): Promise<Task> {
     const task = await this.getTaskById(currentUserId, taskId);
-
+    await this.validateTaskUpdate(currentUserId, task, updateTaskDto);
     // Handle status change
     if (
       updateTaskDto.status === TaskStatuses.Done &&
@@ -71,7 +75,7 @@ export class TaskService {
   }
 
   async deleteTask(currentUserId: number, taskId: number): Promise<void> {
-    // const task = await this.getTaskById(currentUserId, taskId);
+    await this.getTaskById(currentUserId, taskId);
     await this.taskRepository.delete(taskId);
   }
 
@@ -88,13 +92,13 @@ export class TaskService {
     return this.taskRepository.findByWorker(userId);
   }
 
-  async getDueTasks(currentUserId: number): Promise<Task[]> {
+  async getDueTasks(
+    currentUserId: number,
+    status: TaskStatuses,
+  ): Promise<Task[]> {
     const user = await this.userService.getUserById(currentUserId);
 
-    const query = this.taskRepository
-      .query()
-      .where('due_date', '<=', new Date())
-      .whereNot('status', '=', TaskStatuses.Done);
+    const query = this.taskRepository.query().where('status', '<=', status);
 
     if (user.role !== UserRoles.Admin) {
       query.where('worker_user_id', '=', currentUserId);
@@ -113,6 +117,127 @@ export class TaskService {
     ) {
       // Check project access
       await this.projectService.getProjectById(userId, task.project_id);
+    }
+  }
+
+  async getTaskUpdatePermissions(
+    userId: number,
+    task: Task,
+  ): Promise<TaskUpdatePermissions> {
+    const user = await this.userService.getUserById(userId);
+    // const isCreator = task.created_by === userId;
+    const isAssignedWorker = task.worker_user_id === userId;
+
+    switch (user.role) {
+      case UserRoles.OrgAdminUser:
+        return this.getOrgAdminPermissions();
+      case UserRoles.OrgUser:
+        return this.getOrgUserPermissions(task, isAssignedWorker);
+      default:
+        throw new ForbiddenException('Invalid user role');
+    }
+  }
+
+  private getOrgAdminPermissions(): TaskUpdatePermissions {
+    return {
+      canUpdateStatus: true,
+      canUpdateWorker: true,
+      canUpdateDueDate: true,
+      canUpdateProject: true,
+      allowedStatusTransitions: Object.values(TaskStatuses),
+    };
+  }
+
+  private getOrgUserPermissions(
+    task: Task,
+    isAssignedWorker: boolean,
+  ): TaskUpdatePermissions {
+    if (!isAssignedWorker) {
+      return {
+        canUpdateStatus: false,
+        canUpdateWorker: false,
+        canUpdateDueDate: false,
+        canUpdateProject: false,
+        allowedStatusTransitions: [],
+      };
+    }
+
+    return {
+      canUpdateStatus: true,
+      canUpdateWorker: false,
+      canUpdateDueDate: false,
+      canUpdateProject: false,
+      allowedStatusTransitions: this.getAllowedStatusTransitionsForOrgUser(
+        task.status,
+      ),
+    };
+  }
+
+  private getAllowedStatusTransitionsForOrgUser(
+    currentStatus: TaskStatuses,
+  ): TaskStatuses[] {
+    switch (currentStatus) {
+      case TaskStatuses.Created:
+        return [TaskStatuses.InProgress];
+      case TaskStatuses.InProgress:
+        return [TaskStatuses.Done, TaskStatuses.Created];
+      case TaskStatuses.Done:
+        return [];
+      default:
+        return [];
+    }
+  }
+
+  async validateTaskUpdate(
+    userId: number,
+    task: Task,
+    updates: Partial<Task>,
+  ): Promise<void> {
+    const permissions = await this.getTaskUpdatePermissions(userId, task);
+
+    if (updates.status !== undefined) {
+      await this.validateStatusUpdate(task, updates.status, permissions);
+    }
+
+    if (updates.worker_user_id !== undefined && !permissions.canUpdateWorker) {
+      throw new ForbiddenException(
+        'You do not have permission to update worker',
+      );
+    }
+
+    if (updates.due_date !== undefined && !permissions.canUpdateDueDate) {
+      throw new ForbiddenException(
+        'You do not have permission to update due date',
+      );
+    }
+
+    if (updates.project_id !== undefined && !permissions.canUpdateProject) {
+      throw new ForbiddenException(
+        'You do not have permission to update project',
+      );
+    }
+  }
+
+  private async validateStatusUpdate(
+    task: Task,
+    newStatus: TaskStatuses,
+    permissions: TaskUpdatePermissions,
+  ): Promise<void> {
+    if (!permissions.canUpdateStatus) {
+      throw new ForbiddenException(
+        'You do not have permission to update status',
+      );
+    }
+
+    if (!permissions.allowedStatusTransitions.includes(newStatus)) {
+      throw new ForbiddenException(
+        `Invalid status transition from ${task.status} to ${newStatus}`,
+      );
+    }
+
+    // If transitioning to Done, set done_at
+    if (newStatus === TaskStatuses.Done && !task.done_at) {
+      task.done_at = new Date();
     }
   }
 }

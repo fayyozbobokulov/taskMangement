@@ -17,14 +17,16 @@ import { TaskService } from './task.service';
 import { Roles } from 'src/decorators/roles.decorator';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { UserRoles } from '../user/interface/user-role.enum';
+import { RoleGroups } from 'src/guards/role-groups';
+import { TaskStatuses } from './interface/task-statuses.enum';
 
 @Controller('tasks')
 @UseGuards(RolesGuard)
-@Roles(UserRoles.OrgAdminUser)
 export class TaskController {
   constructor(private readonly taskService: TaskService) {}
 
   @Get(':id')
+  @Roles(...RoleGroups.ORG_GROUP)
   async getTaskById(
     @Request() req,
     @Param('id', ParseIntPipe) id: number,
@@ -33,6 +35,7 @@ export class TaskController {
   }
 
   @Post()
+  @Roles(UserRoles.OrgAdminUser)
   async createTask(
     @Request() req,
     @Body() createTaskDto: CreateTaskDto,
@@ -41,6 +44,7 @@ export class TaskController {
   }
 
   @Put(':id')
+  @Roles(...RoleGroups.ORG_GROUP)
   async updateTask(
     @Request() req,
     @Param('id', ParseIntPipe) id: number,
@@ -50,6 +54,7 @@ export class TaskController {
   }
 
   @Delete(':id')
+  @Roles(UserRoles.OrgAdminUser)
   async deleteTask(
     @Request() req,
     @Param('id', ParseIntPipe) id: number,
@@ -58,6 +63,7 @@ export class TaskController {
   }
 
   @Get('project/:projectId')
+  @Roles(...RoleGroups.ORG_GROUP)
   async getProjectTasks(
     @Request() req,
     @Param('projectId', ParseIntPipe) projectId: number,
@@ -66,12 +72,17 @@ export class TaskController {
   }
 
   @Get('my/tasks')
+  @Roles(UserRoles.OrgUser)
   async getMyTasks(@Request() req): Promise<Task[]> {
     return this.taskService.getMyTasks(req.user.id);
   }
 
-  @Get('my/due')
-  async getDueTasks(@Request() req): Promise<Task[]> {
-    return this.taskService.getDueTasks(req.user.id);
+  @Get('my/:status')
+  @Roles(UserRoles.OrgUser)
+  async getDueTasks(
+    @Request() req,
+    @Param('status') status: TaskStatuses,
+  ): Promise<Task[]> {
+    return this.taskService.getDueTasks(req.user.id, status);
   }
 }
