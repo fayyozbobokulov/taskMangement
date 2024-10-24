@@ -8,13 +8,19 @@ import {
   Param,
   ParseIntPipe,
   Request,
+  UseGuards,
 } from '@nestjs/common';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { Project } from './interface/project.interface';
 import { ProjectService } from './project.service';
+import { RolesGuard } from 'src/guards/roles.guard';
+import { Roles } from 'src/decorators/roles.decorator';
+import { UserRoles } from '../user/interface/user-role.enum';
 
 @Controller('projects')
+@UseGuards(RolesGuard)
+@Roles(UserRoles.OrgAdminUser)
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 
