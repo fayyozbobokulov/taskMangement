@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ADMIN_KEY } from '../decorators/admin.decorator';
+import { UserRoles } from 'src/modules/user/interface/user-role.enum';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
@@ -24,7 +25,7 @@ export class AdminGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const userType = request.headers['user-type'];
 
-    if (userType !== 'admin') {
+    if (userType !== UserRoles.Admin) {
       throw new UnauthorizedException('Admin access required');
     }
 
