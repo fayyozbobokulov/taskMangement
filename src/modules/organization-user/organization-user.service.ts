@@ -3,6 +3,8 @@ import {
   NotFoundException,
   ConflictException,
   ForbiddenException,
+  forwardRef,
+  Inject,
 } from '@nestjs/common';
 import { OrganizationService } from '../organization/organization.service';
 import { UserService } from '../user/user.service';
@@ -16,6 +18,7 @@ export class OrganizationUserService {
   constructor(
     private readonly organizationUserRepository: OrganizationUserRepository,
     private readonly userService: UserService,
+    @Inject(forwardRef(() => OrganizationService))
     private readonly organizationService: OrganizationService,
   ) {}
 

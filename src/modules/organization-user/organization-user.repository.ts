@@ -1,9 +1,11 @@
 import { Knex } from 'knex';
 import { BaseRepository } from '../base';
 import { OrganizationUser } from './interface/orgazation-user.interface';
+import { Inject } from '@nestjs/common';
+import { KNEX_CONNECTION } from '../knex/constants';
 
 export class OrganizationUserRepository extends BaseRepository<OrganizationUser> {
-  constructor(knex: Knex) {
+  constructor(@Inject(KNEX_CONNECTION) knex: Knex) {
     super(knex, 'organization_users');
   }
 

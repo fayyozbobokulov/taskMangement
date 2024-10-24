@@ -1,12 +1,14 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { OrganizationService } from './organization.service';
 import { OrganizationController } from './organization.controller';
 import { OrganizationRepository } from './organization.repository';
-import { KnexModule } from '../knex/knex.module';
+import { OrganizationUsersModule } from '../organization-user/organization-user.module';
+import { UsersModule } from '../user/user.module';
 
 @Module({
-  imports: [KnexModule],
+  imports: [UsersModule, forwardRef(() => OrganizationUsersModule)],
   providers: [OrganizationService, OrganizationRepository],
   controllers: [OrganizationController],
+  exports: [OrganizationService],
 })
 export class OrganizationsModule {}

@@ -1,5 +1,7 @@
 /* eslint-disable no-undef */
-export default {
+import { Knex } from 'knex';
+
+export const knexConfig: Knex.Config = {
   client: 'pg',
   connection: {
     host: process.env.DB_HOST || 'localhost',
@@ -13,5 +15,9 @@ export default {
   },
   seeds: {
     directory: './seeds',
+  },
+  pool: {
+    min: 2,
+    max: 10,
   },
 };

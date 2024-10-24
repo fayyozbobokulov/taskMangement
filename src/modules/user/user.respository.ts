@@ -1,11 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Knex } from 'knex';
 import { BaseRepository } from '../base';
 import { User } from './interface/user.interface';
+import { KNEX_CONNECTION } from '../knex/constants';
 
 @Injectable()
 export class UserRepository extends BaseRepository<User> {
-  constructor(knex: Knex) {
+  constructor(@Inject(KNEX_CONNECTION) knex: Knex) {
     super(knex, 'users');
   }
 
