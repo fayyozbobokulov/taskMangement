@@ -23,8 +23,8 @@ Before you start, ensure you have the following installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/task-management.git
-cd task-management
+git clone https://github.com/fayyozbobokulov/taskManagement.git
+cd taskManagement
 ```
 
 ### 2. Build and Run the Containers

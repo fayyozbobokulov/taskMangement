@@ -17,32 +17,37 @@ import { TaskService } from './task.service';
 import { Roles } from 'src/decorators/roles.decorator';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { UserRoles } from '../user/interface/user-role.enum';
+import { RoleGroups } from 'src/guards/role-groups';
+import { TaskStatuses } from './interface/task-statuses.enum';
+import { RequestWithUser } from 'src/types/request.interface';
 
 @Controller('tasks')
 @UseGuards(RolesGuard)
-@Roles(UserRoles.OrgAdminUser)
 export class TaskController {
   constructor(private readonly taskService: TaskService) {}
 
   @Get(':id')
+  @Roles(...RoleGroups.ORG_GROUP)
   async getTaskById(
-    @Request() req,
+    @Request() req: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
   ): Promise<Task> {
     return this.taskService.getTaskById(req.user.id, id);
   }
 
   @Post()
+  @Roles(UserRoles.OrgAdminUser)
   async createTask(
-    @Request() req,
+    @Request() req: RequestWithUser,
     @Body() createTaskDto: CreateTaskDto,
   ): Promise<Task> {
     return this.taskService.createTask(req.user.id, createTaskDto);
   }
 
   @Put(':id')
+  @Roles(...RoleGroups.ORG_GROUP)
   async updateTask(
-    @Request() req,
+    @Request() req: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
     @Body() updateTaskDto: UpdateTaskDto,
   ): Promise<Task> {
@@ -50,28 +55,35 @@ export class TaskController {
   }
 
   @Delete(':id')
+  @Roles(UserRoles.OrgAdminUser)
   async deleteTask(
-    @Request() req,
+    @Request() req: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
   ): Promise<void> {
     await this.taskService.deleteTask(req.user.id, id);
   }
 
   @Get('project/:projectId')
+  @Roles(...RoleGroups.ORG_GROUP)
   async getProjectTasks(
-    @Request() req,
+    @Request() req: RequestWithUser,
     @Param('projectId', ParseIntPipe) projectId: number,
   ): Promise<Task[]> {
     return this.taskService.getProjectTasks(req.user.id, projectId);
   }
 
   @Get('my/tasks')
-  async getMyTasks(@Request() req): Promise<Task[]> {
+  @Roles(UserRoles.OrgUser)
+  async getMyTasks(@Request() req: RequestWithUser): Promise<Task[]> {
     return this.taskService.getMyTasks(req.user.id);
   }
 
-  @Get('my/due')
-  async getDueTasks(@Request() req): Promise<Task[]> {
-    return this.taskService.getDueTasks(req.user.id);
+  @Get('my/:status')
+  @Roles(UserRoles.OrgUser)
+  async getDueTasks(
+    @Request() req: RequestWithUser,
+    @Param('status') status: TaskStatuses,
+  ): Promise<Task[]> {
+    return this.taskService.getDueTasks(req.user.id, status);
   }
 }
