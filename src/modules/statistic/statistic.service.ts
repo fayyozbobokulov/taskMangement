@@ -20,8 +20,8 @@ export class StatisticsService {
 
   async getOrganizationStatistics(
     id?: number,
-  ): Promise<OrganizationStatistics> {
-    const result = await this.organizationRepository
+  ): Promise<OrganizationStatistics[]> {
+    const query = this.organizationRepository
       .query()
       .select([
         'organizations.id',
@@ -35,17 +35,22 @@ export class StatisticsService {
           'COUNT(DISTINCT tasks.id) as "totalTasksCount"',
         ),
       ])
-      .leftJoin('projects', 'organizations.id', 'projects.organization_id')
+      .leftJoin('projects', 'organizations.id', 'projects.org_id')
       .leftJoin('tasks', 'projects.id', 'tasks.project_id')
-      .where('organizations.id', '=', id)
-      .groupBy('organizations.id')
-      .first();
+      .groupBy('organizations.id');
 
-    return result;
+    if (id) {
+      query.where('organizations.id', '=', id);
+    }
+
+    return query; // Returns array of results
   }
 
-  async getProjectStatistics(): Promise<ProjectStatistics> {
-    return this.projectRepository
+  async getProjectStatistics(
+    organizationId?: number,
+    projectId?: number,
+  ): Promise<ProjectStatistics[]> {
+    const query = this.projectRepository
       .query()
       .select([
         'organizations.id as organizationId',
@@ -88,62 +93,108 @@ export class StatisticsService {
         'projects.created_at',
         'projects.updated_at',
       ])
-      .orderBy(['organizations.name', 'projects.name'])
-      .first();
+      .orderBy(['organizations.name', 'projects.name']);
+
+    if (organizationId) {
+      query.where('organizations.id', '=', organizationId);
+    }
+
+    if (projectId) {
+      query.where('projects.id', '=', projectId);
+    }
+
+    return query; // Returns array of results
   }
 
-  async getGeneralStatistics(): Promise<GeneralStatistics> {
-    const [orgsCount, projectsCount, tasksCount] = await Promise.all([
-      // Get total organizations count
-      this.organizationRepository
-        .query()
-        .count('id as count')
-        .first()
-        .then((result) => parseInt(result.count as string)),
-
-      // Get total projects count
-      this.projectRepository
-        .query()
-        .count('id as count')
-        .first()
-        .then((result) => parseInt(result.count as string)),
-
-      // Get total tasks count
-      this.taskRepository
-        .query()
-        .count('id as count')
-        .first()
-        .then((result) => parseInt(result.count as string)),
-
-      // Get task status distribution
-      this.taskRepository
-        .query()
-        .select('status')
-        .count('id as count')
-        .groupBy('status')
-        .then((results) =>
-          results.reduce(
-            (acc, curr) => ({
-              ...acc,
-              [curr.status]: parseInt(curr.count as string),
-            }),
-            {},
-          ),
-        ),
-    ]);
-
-    return {
-      totalOrganizations: orgsCount,
-      totalProjects: projectsCount,
-      totalTasks: tasksCount,
+  async getGeneralStatistics(
+    organizationId?: number,
+    projectId?: number,
+  ): Promise<GeneralStatistics[]> {
+    const baseQuery = (query: any) => {
+      if (organizationId) {
+        query
+          .join('projects', 'tasks.project_id', 'projects.id')
+          .where('projects.org_id', '=', organizationId);
+      }
+      if (projectId) {
+        query.where('tasks.project_id', '=', projectId);
+      }
+      return query;
     };
+
+    // Get task status distribution per organization/project
+    const taskStatusDistribution = await baseQuery(this.taskRepository.query())
+      .select([
+        'projects.org_id as organizationId',
+        'tasks.project_id as projectId',
+        'tasks.status',
+        this.taskRepository.raw('COUNT(*) as count'),
+      ])
+      .groupBy('projects.org_id', 'tasks.project_id', 'tasks.status');
+
+    // Process the raw data into statistics
+    const statsMap = new Map<string, any>();
+
+    for (const row of taskStatusDistribution) {
+      const key = `${row.organizationId}_${row.projectId}`;
+      if (!statsMap.has(key)) {
+        statsMap.set(key, {
+          organizationId: row.organizationId,
+          projectId: row.projectId,
+          totalTasks: 0,
+          taskStatusDistribution: {},
+        });
+      }
+
+      const stats = statsMap.get(key);
+      stats.totalTasks += parseInt(row.count);
+      stats.taskStatusDistribution[row.status] = parseInt(row.count);
+    }
+
+    // Get projects count
+    const projectCounts = await this.projectRepository
+      .query()
+      .select('org_id')
+      .count('id as count')
+      .modify((query) => {
+        if (organizationId) {
+          query.where('org_id', '=', organizationId);
+        }
+        if (projectId) {
+          query.where('id', '=', projectId);
+        }
+      })
+      .groupBy('org_id');
+
+    // Convert the map to array and add additional statistics
+    const results = Array.from(statsMap.values()).map((stats) => {
+      const projectCount =
+        projectCounts.find((p) => p.org_id === stats.organizationId)?.count ||
+        0;
+
+      return {
+        organizationId: stats.organizationId,
+        projectId: stats.projectId,
+        totalProjects: parseInt(projectCount),
+        totalTasks: stats.totalTasks,
+        taskStatusDistribution: stats.taskStatusDistribution,
+        avgTasksPerProject:
+          projectCount > 0 ? +(stats.totalTasks / projectCount).toFixed(2) : 0,
+        lastUpdated: new Date(),
+      };
+    });
+
+    return results;
   }
 
-  async getAllStatistics(): Promise<CompleteStatistics> {
+  async getAllStatistics(
+    organizationId?: number,
+    projectId?: number,
+  ): Promise<CompleteStatistics> {
     const [organizationStats, projectStats, generalStats] = await Promise.all([
-      this.getOrganizationStatistics(),
-      this.getProjectStatistics(),
-      this.getGeneralStatistics(),
+      this.getOrganizationStatistics(organizationId),
+      this.getProjectStatistics(organizationId, projectId),
+      this.getGeneralStatistics(organizationId, projectId),
     ]);
 
     return {
