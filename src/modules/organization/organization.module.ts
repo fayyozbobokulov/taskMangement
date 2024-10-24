@@ -9,4 +9,4 @@ import { KnexModule } from '../knex/knex.module';
   providers: [OrganizationService, OrganizationRepository],
   controllers: [OrganizationController],
 })
-export class OrganizationModule {}
+export class OrganizationsModule {}

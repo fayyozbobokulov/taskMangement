@@ -12,7 +12,7 @@ export class BaseRepository<T> {
   ) {}
 
   // Query Building Methods
-  protected query(): Knex.QueryBuilder {
+  query(): Knex.QueryBuilder {
     return this.knex(this.tableName);
   }
 
