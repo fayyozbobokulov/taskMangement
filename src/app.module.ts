@@ -1,7 +1,5 @@
 /* eslint-disable no-undef */
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { OrganizationsModule } from './modules/organization/organization.module';
 import { UsersModule } from './modules/user/user.module';
 import { OrganizationUsersModule } from './modules/organization-user/organization-user.module';
@@ -32,7 +30,5 @@ import { KnexModule } from './modules/knex/knex.module';
     TasksModule,
     ProjectsModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}
