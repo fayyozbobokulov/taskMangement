@@ -9,18 +9,23 @@ import {
   ParseIntPipe,
   UseGuards,
 } from '@nestjs/common';
-import { AdminGuard } from 'src/guards/admin.guards';
+import { AdminGuard } from 'src/guards/admin.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './interface/user.interface';
 import { UserService } from './user.service';
 import { UserRoles } from './interface/user-role.enum';
+import { Roles } from 'src/decorators/roles.decorator';
+import { RolesGuard } from 'src/guards/roles.guard';
+import { RoleGroups } from 'src/guards/role-groups';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
+  @Roles(...RoleGroups.ALL_ADMIN)
+  @UseGuards(RolesGuard)
   async getAllUsers(): Promise<User[]> {
     return this.userService.getAllUsers();
   }
