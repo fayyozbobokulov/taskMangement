@@ -1,6 +1,4 @@
 /* eslint-disable no-undef */
-// src/config/knexfile.ts
-
 module.exports = {
   development: {
     client: 'postgresql',
