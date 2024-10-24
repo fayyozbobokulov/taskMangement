@@ -114,4 +114,12 @@ export class OrganizationUserService {
 
     return this.organizationUserRepository.getUsersWithDetails(orgId);
   }
+
+  async isUserInOrganization(userId: number, orgId: number): Promise<boolean> {
+    const user = await this.organizationUserRepository.findByOrgAndUser(
+      orgId,
+      userId,
+    );
+    return !!user;
+  }
 }
