@@ -7,5 +7,5 @@ export class CreateOrganizationDto {
 
   @IsNumber()
   @IsNotEmpty()
-  requestedBy: number; // The user ID of the person requesting the creation (this will become `created_by`)
+  created_by: number; // The user ID of the person requesting the creation (this will become `created_by`)
 }
