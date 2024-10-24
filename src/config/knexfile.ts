@@ -1,13 +1,19 @@
 /* eslint-disable no-undef */
-module.exports = {
+import type { Knex } from 'knex';
+
+interface KnexConfig {
+  [key: string]: Knex.Config;
+}
+
+const configs: KnexConfig = {
   development: {
-    client: 'postgresql',
+    client: 'pg',
     connection: {
-      host: 'localhost',
-      port: 5432,
-      database: 'project_management_db',
-      user: 'admin',
-      password: 'admin_password',
+      host: process.env.DB_HOST || 'localhost',
+      user: process.env.DB_USER || 'admin',
+      password: process.env.DB_PASSWORD || 'admin_password',
+      database: process.env.DB_NAME || 'project_management_db',
+      port: Number(process.env.DB_PORT) || 5432,
     },
     pool: {
       min: 2,
@@ -21,10 +27,11 @@ module.exports = {
     seeds: {
       directory: './seeds',
     },
+    debug: process.env.NODE_ENV === 'development',
   },
 
   production: {
-    client: 'postgresql',
+    client: 'pg',
     connection: {
       host: process.env.DB_HOST,
       port: Number(process.env.DB_PORT),
@@ -40,5 +47,18 @@ module.exports = {
       tableName: 'knex_migrations',
       directory: './migrations',
     },
+    debug: false,
   },
 };
+
+export const getKnexConfig = (
+  environment: string = process.env.NODE_ENV || 'development',
+): Knex.Config => {
+  const config = configs[environment];
+  if (!config) {
+    throw new Error(`No configuration found for environment: ${environment}`);
+  }
+  return config;
+};
+
+export default configs;
