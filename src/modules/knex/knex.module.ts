@@ -48,7 +48,9 @@ export class KnexModule implements OnApplicationShutdown {
     const connectionProvider: Provider = {
       provide: KNEX_CONNECTION,
       useFactory: async (...args: any[]) => {
-        const config = await options.useFactory(...args);
+        const config =
+          (await options.useFactory(...args)) ||
+          getKnexConfig(process.env.NODE_ENV);
         return await KnexModule.createConnectionFactory(config);
       },
       inject: options.inject || [],
