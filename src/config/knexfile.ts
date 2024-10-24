@@ -1,23 +1,46 @@
 /* eslint-disable no-undef */
-import { Knex } from 'knex';
+// src/config/knexfile.ts
 
-export const knexConfig: Knex.Config = {
-  client: 'pg',
-  connection: {
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'admin',
-    password: process.env.DB_PASSWORD || 'admin_password',
-    database: process.env.DB_NAME || 'project_management_db',
-    port: Number(process.env.DB_PORT) || 5432,
+module.exports = {
+  development: {
+    client: 'postgresql',
+    connection: {
+      host: 'localhost',
+      port: 5432,
+      database: 'project_management_db',
+      user: 'admin',
+      password: 'admin_password',
+    },
+    pool: {
+      min: 2,
+      max: 10,
+    },
+    migrations: {
+      tableName: 'knex_migrations',
+      directory: './migrations',
+      extension: 'ts',
+    },
+    seeds: {
+      directory: './seeds',
+    },
   },
-  migrations: {
-    directory: './migrations',
-  },
-  seeds: {
-    directory: './seeds',
-  },
-  pool: {
-    min: 2,
-    max: 10,
+
+  production: {
+    client: 'postgresql',
+    connection: {
+      host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT),
+      database: process.env.DB_NAME,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+    },
+    pool: {
+      min: 2,
+      max: 10,
+    },
+    migrations: {
+      tableName: 'knex_migrations',
+      directory: './migrations',
+    },
   },
 };
