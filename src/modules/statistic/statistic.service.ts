@@ -108,16 +108,12 @@ export class StatisticsService {
 
   async getGeneralStatistics(
     organizationId?: number,
-    projectId?: number,
   ): Promise<GeneralStatistics[]> {
     const baseQuery = (query: any) => {
       if (organizationId) {
         query
           .join('projects', 'tasks.project_id', 'projects.id')
           .where('projects.org_id', '=', organizationId);
-      }
-      if (projectId) {
-        query.where('tasks.project_id', '=', projectId);
       }
       return query;
     };
@@ -160,9 +156,6 @@ export class StatisticsService {
         if (organizationId) {
           query.where('org_id', '=', organizationId);
         }
-        if (projectId) {
-          query.where('id', '=', projectId);
-        }
       })
       .groupBy('org_id');
 
@@ -194,7 +187,7 @@ export class StatisticsService {
     const [organizationStats, projectStats, generalStats] = await Promise.all([
       this.getOrganizationStatistics(organizationId),
       this.getProjectStatistics(organizationId, projectId),
-      this.getGeneralStatistics(organizationId, projectId),
+      this.getGeneralStatistics(organizationId),
     ]);
 
     return {

@@ -1,4 +1,12 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  UseGuards,
+  Get,
+  Param,
+  ParseIntPipe,
+  HttpStatus,
+  Query,
+} from '@nestjs/common';
 import { Roles } from 'src/decorators/roles.decorator';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { UserRoles } from '../user/interface/user-role.enum';
@@ -16,25 +24,66 @@ import { StatisticsService } from './statistic.service';
 export class StatisticsController {
   constructor(private readonly statisticsService: StatisticsService) {}
 
-  @Get('organizations/:id')
+  @Get('organizations/:id?')
   async getOrganizationStatistics(
-    @Param('id') id?: number,
-  ): Promise<OrganizationStatistics> {
+    @Param(
+      'id',
+      new ParseIntPipe({
+        errorHttpStatusCode: HttpStatus.BAD_REQUEST,
+        optional: true,
+      }),
+    )
+    id?: number,
+  ): Promise<OrganizationStatistics[]> {
     return this.statisticsService.getOrganizationStatistics(id);
   }
 
   @Get('projects')
-  async getProjectStatistics(): Promise<ProjectStatistics[]> {
-    return this.statisticsService.getProjectStatistics();
+  async getProjectStatistics(
+    @Query(
+      'organizationId',
+      new ParseIntPipe({
+        errorHttpStatusCode: HttpStatus.BAD_REQUEST,
+        optional: true,
+      }),
+    )
+    organizationId?: number,
+    @Query(
+      'projectId',
+      new ParseIntPipe({
+        errorHttpStatusCode: HttpStatus.BAD_REQUEST,
+        optional: true,
+      }),
+    )
+    projectId?: number,
+  ): Promise<ProjectStatistics[]> {
+    return this.statisticsService.getProjectStatistics(
+      organizationId,
+      projectId,
+    );
   }
 
-  @Get('general')
-  async getGeneralStatistics(): Promise<GeneralStatistics> {
-    return this.statisticsService.getGeneralStatistics();
+  @Get('general/:id')
+  async getGeneralStatistics(
+    @Param(
+      'id',
+      new ParseIntPipe({
+        errorHttpStatusCode: HttpStatus.BAD_REQUEST,
+        optional: true,
+      }),
+    )
+    id?: number,
+  ): Promise<GeneralStatistics[]> {
+    return this.statisticsService.getGeneralStatistics(id);
   }
 
   @Get()
-  async getAllStatistics(): Promise<CompleteStatistics> {
-    return this.statisticsService.getAllStatistics();
+  async getAllStatistics(
+    @Query('organizationId', new ParseIntPipe({ optional: true }))
+    organizationId?: number,
+    @Query('projectId', new ParseIntPipe({ optional: true }))
+    projectId?: number,
+  ): Promise<CompleteStatistics> {
+    return this.statisticsService.getAllStatistics(organizationId, projectId);
   }
 }
