@@ -6,6 +6,7 @@ import { OrganizationUsersModule } from './modules/organization-user/organizatio
 import { TasksModule } from './modules/task/task.module';
 import { ProjectsModule } from './modules/project/project.module';
 import { KnexModule } from './modules/knex/knex.module';
+import { StatisticsModule } from './modules/statistic/statistic.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { KnexModule } from './modules/knex/knex.module';
     OrganizationUsersModule,
     TasksModule,
     ProjectsModule,
+    StatisticsModule,
   ],
 })
 export class AppModule {}

@@ -205,8 +205,7 @@ export class BaseRepository<T> {
     return this.query().having(column as string, operator, value);
   }
 
-  // Raw Queries
-  protected raw(sql: string, bindings?: any[]): Knex.Raw {
+  raw(sql: string, bindings?: any[]): Knex.Raw {
     return this.knex.raw(sql, bindings);
   }
 

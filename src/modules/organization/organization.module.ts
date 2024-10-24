@@ -9,6 +9,6 @@ import { UsersModule } from '../user/user.module';
   imports: [UsersModule, forwardRef(() => OrganizationUsersModule)],
   providers: [OrganizationService, OrganizationRepository],
   controllers: [OrganizationController],
-  exports: [OrganizationService],
+  exports: [OrganizationService, OrganizationRepository],
 })
 export class OrganizationsModule {}

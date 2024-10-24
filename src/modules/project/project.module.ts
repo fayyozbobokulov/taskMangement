@@ -10,6 +10,6 @@ import { OrganizationsModule } from '../organization/organization.module';
   imports: [UsersModule, OrganizationsModule, OrganizationUsersModule],
   controllers: [ProjectController],
   providers: [ProjectService, ProjectRepository],
-  exports: [ProjectService],
+  exports: [ProjectService, ProjectRepository],
 })
 export class ProjectsModule {}
