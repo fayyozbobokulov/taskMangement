@@ -14,6 +14,7 @@ import { OrganizationUserService } from './organization-user.service';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { Roles } from 'src/decorators/roles.decorator';
 import { UserRoles } from '../user/interface/user-role.enum';
+import { RequestWithUser } from 'src/types/request.interface';
 
 @Controller('organization-users')
 @UseGuards(RolesGuard)
@@ -25,7 +26,7 @@ export class OrganizationUserController {
   @Post()
   @Roles(UserRoles.Admin)
   async addUserToOrganization(
-    @Request() req,
+    @Request() req: RequestWithUser,
     @Body() createOrgUserDto: CreateOrganizationUserDto,
   ) {
     return this.organizationUserService.addUserToOrganization(
@@ -37,7 +38,7 @@ export class OrganizationUserController {
   @Delete(':orgId/users/:userId')
   @Roles(UserRoles.Admin)
   async removeUserFromOrganization(
-    @Request() req,
+    @Request() req: RequestWithUser,
     @Param('orgId', ParseIntPipe) orgId: number,
     @Param('userId', ParseIntPipe) userId: number,
   ) {
@@ -57,7 +58,7 @@ export class OrganizationUserController {
   @Get('organization/:orgId/users')
   @Roles(UserRoles.Admin)
   async getOrganizationUsers(
-    @Request() req,
+    @Request() req: RequestWithUser,
     @Param('orgId', ParseIntPipe) orgId: number,
   ) {
     return this.organizationUserService.getOrganizationUsers(

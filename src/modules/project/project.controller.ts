@@ -17,6 +17,7 @@ import { ProjectService } from './project.service';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { Roles } from 'src/decorators/roles.decorator';
 import { UserRoles } from '../user/interface/user-role.enum';
+import { RequestWithUser } from 'src/types/request.interface';
 
 @Controller('projects')
 @UseGuards(RolesGuard)
@@ -25,13 +26,13 @@ export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 
   @Get()
-  async getAllProjects(@Request() req): Promise<Project[]> {
+  async getAllProjects(@Request() req: RequestWithUser): Promise<Project[]> {
     return this.projectService.getAllProjects(req.user.id);
   }
 
   @Get(':id')
   async getProjectById(
-    @Request() req,
+    @Request() req: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
   ): Promise<Project> {
     return this.projectService.getProjectById(req.user.id, id);
@@ -39,7 +40,7 @@ export class ProjectController {
 
   @Post()
   async createProject(
-    @Request() req,
+    @Request() req: RequestWithUser,
     @Body() createProjectDto: CreateProjectDto,
   ): Promise<Project> {
     return this.projectService.createProject(req.user.id, createProjectDto);
@@ -47,7 +48,7 @@ export class ProjectController {
 
   @Put(':id')
   async updateProject(
-    @Request() req,
+    @Request() req: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
     @Body() updateProjectDto: UpdateProjectDto,
   ): Promise<Project> {
@@ -56,7 +57,7 @@ export class ProjectController {
 
   @Delete(':id')
   async deleteProject(
-    @Request() req,
+    @Request() req: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
   ): Promise<void> {
     await this.projectService.deleteProject(req.user.id, id);
@@ -64,7 +65,7 @@ export class ProjectController {
 
   @Get('organization/:orgId')
   async getOrganizationProjects(
-    @Request() req,
+    @Request() req: RequestWithUser,
     @Param('orgId', ParseIntPipe) orgId: number,
   ): Promise<Project[]> {
     return this.projectService.getOrganizationProjects(req.user.id, orgId);
