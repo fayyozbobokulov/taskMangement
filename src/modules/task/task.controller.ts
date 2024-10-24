@@ -8,13 +8,19 @@ import {
   Param,
   ParseIntPipe,
   Request,
+  UseGuards,
 } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task } from './interface/task.interface';
 import { TaskService } from './task.service';
+import { Roles } from 'src/decorators/roles.decorator';
+import { RolesGuard } from 'src/guards/roles.guard';
+import { UserRoles } from '../user/interface/user-role.enum';
 
 @Controller('tasks')
+@UseGuards(RolesGuard)
+@Roles(UserRoles.OrgAdminUser)
 export class TaskController {
   constructor(private readonly taskService: TaskService) {}
 
